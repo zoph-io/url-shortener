@@ -15,6 +15,7 @@ help:
 ###################### Parameters ######################
 Project := url-shortener
 Description := ${Project} - zoph.io url-shortener - ${Env}
+CreateUrl := https://s.zoph.io/create/
 AppUrl := https://s.zoph.io/t/
 AWSRegion := eu-west-1
 Env := dev
@@ -44,6 +45,9 @@ deploy: build
 			pDescription='${Description}' \
 			pAlertsRecipient='${AlertsRecipient}' \
 		--no-fail-on-empty-changeset
+
+create-url:
+	@echo '{"long_url": "${url}"}' | http POST ${CreateUrl} \
 
 delete:
 	sam delete --stack-name "${Project}-${Env}"

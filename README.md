@@ -14,6 +14,10 @@ This url-shortener is used for AWS Security Digest to shorten urls and also act 
 
         $ make deploy
 
+### Shorten urls
+
+        $ make create-url url=https://google.com
+
 ## 📖 Reference
 
 - [Blog post](https://blog.ruanbekker.com/blog/2018/11/30/how-to-setup-a-serverless-url-shortener-with-api-gateway-lambda-and-dynamodb-on-aws/)
