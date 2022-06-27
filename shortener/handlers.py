@@ -5,6 +5,16 @@ from string import ascii_letters, digits
 from random import choice, randint
 from time import strftime, time
 from urllib import parse
+import logging
+
+# Logging configuration
+root = logging.getLogger()
+if root.handlers:
+    for handler in root.handlers:
+        root.removeHandler(handler)
+logging.basicConfig(
+    format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 
 app_url = os.getenv("APP_URL")
 aws_region = os.getenv("AWS_REGION")
@@ -54,6 +64,7 @@ def main(event, context):
     analytics["user_agent"] = event.get("headers").get("User-Agent")
     analytics["source_ip"] = event.get("headers").get("X-Forwarded-For")
     analytics["xray_trace_id"] = event.get("headers").get("X-Amzn-Trace-Id")
+    logging.info("Generating long-url: %s", analytics)
 
     if len(parse.urlsplit(long_url).query) > 0:
         url_params = dict(parse.parse_qsl(parse.urlsplit(long_url).query))

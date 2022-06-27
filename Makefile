@@ -14,8 +14,8 @@ help:
 
 ###################### Parameters ######################
 Project := url-shortener
-Description := ${Project} - zoph.io url-shortener
-AppUrl := https://asd.zoph.io/
+Description := ${Project} - zoph.io url-shortener - ${Env}
+AppUrl := https://s.zoph.io/t/
 AWSRegion := eu-west-1
 Env := dev
 AlertsRecipient := victor@zoph.io
@@ -41,7 +41,8 @@ deploy: build
 			pMinChar=${MinChar} \
 			pMaxChar=${MaxChar} \
 			pProjectName=${Project} \
-			pAlertsRecipient=${AlertsRecipient} \
+			pDescription='${Description}' \
+			pAlertsRecipient='${AlertsRecipient}' \
 		--no-fail-on-empty-changeset
 
 delete:
