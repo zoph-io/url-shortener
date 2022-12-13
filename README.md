@@ -1,23 +1,25 @@
-# url-shortener
+# zoph.io - url-shortener
 
 ## 🧠 Rational
 
-This url-shortener is used for AWS Security Digest to shorten urls and also act as click counter for analytics.
+This AWS serverless url-shortener is used for [AWS Security Digest Newsletter](https://asd.zoph.io) to shorten urls and also act as hits counter for analytics purpose.
 
-## 💡 Feature
+## 💡 Features
 
-1. urls Shortener
-2. Retreiver of long urls
-3. Click counter
+1. urls shortener
+2. hits counter
 
 ## 🚀 Usage
+
+### Deployment
 
         $ make deploy
 
 ### Shorten urls
 
-        $ make create-url url=https://google.com
+        $ make url 'https://google.com'
 
 ## 📖 Reference
 
 - [Blog post](https://blog.ruanbekker.com/blog/2018/11/30/how-to-setup-a-serverless-url-shortener-with-api-gateway-lambda-and-dynamodb-on-aws/)
+- [Makefile](https://itecnote.com/tecnote/r-how-to-pass-argument-to-makefile-from-command-line/)

@@ -1,5 +1,8 @@
-.DEFAULT_GOAL ?= help
-.PHONY: help
+.DEFAULT_GOAL ?= create-url
+.PHONY: create-url
+
+.PHONY: default
+default: create-url ;
 
 help:
 	@echo "Name: ${Product}-${Project}"
@@ -8,13 +11,15 @@ help:
 	@echo "Available commands:"
 	@echo "	build - build ${Product} for ${Project}"
 	@echo "	deploy - deploy ${Product} for ${Project} - deploy also run 'build' command"
+	@echo "	url - create a shorten url using: make url https://google.com"
 	@echo "	---"
 	@echo "	delete - delete ${Product} for ${Project}"
 	@echo "	clean - clean the build folder and artifacts"
 
 ###################### Parameters ######################
-Project := url-shortener
-Description := ${Project} - zoph.io url-shortener - ${Env}
+Product := url-shortener
+Project := asd
+Description := ${Product} - ${Project} - zoph.io - ${Env}
 CreateUrl := https://s.zoph.io/create/
 AppUrl := https://s.zoph.io/t/
 AWSRegion := eu-west-1
@@ -26,6 +31,12 @@ MaxChar := 3
 
 build: clean
 	sam build
+
+url:
+	@echo '{"long_url": "$(filter-out $@,$(MAKECMDGOALS))"}' | http POST ${CreateUrl}
+
+%:
+	@:
 
 deploy: build
 	sam deploy \
@@ -45,9 +56,6 @@ deploy: build
 			pDescription='${Description}' \
 			pAlertsRecipient='${AlertsRecipient}' \
 		--no-fail-on-empty-changeset
-
-create-url:
-	@echo '{"long_url": "${url}"}' | http POST ${CreateUrl} \
 
 delete:
 	sam delete --stack-name "${Project}-${Env}"

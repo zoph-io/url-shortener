@@ -1,11 +1,12 @@
 import os
 import json
-import boto3
 from string import ascii_letters, digits
 from random import choice, randint
 from time import strftime, time
 from urllib import parse
 import logging
+import boto3
+
 
 # Logging configuration
 root = logging.getLogger()

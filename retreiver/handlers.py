@@ -24,7 +24,11 @@ def main(event, context):
     try:
         item = ddb.get_item(Key={"short_id": short_id})
         long_url = item.get("Item").get("long_url")
-        logging.info("Successfully retreived long-url: %s requested for short_id: %s", long_url, short_id)
+        logging.info(
+            "Successfully retreived long-url: %s requested for short_id: %s",
+            long_url,
+            short_id,
+        )
         # increase the hit number on the db entry of the url (for analytics)
         ddb.update_item(
             Key={"short_id": short_id},
