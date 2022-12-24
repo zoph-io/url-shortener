@@ -1,0 +1,54 @@
+body {
+  font-family: "Courier New", Courier, monospace;
+  margin: 20px;
+}
+h1 {
+  text-align: center;
+}
+
+p {
+  text-align: center;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  color: #cc0000;
+  text-decoration: underline;
+}
+
+a:visited {
+  color: #000000;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+label {
+  font-weight: bold;
+}
+
+input {
+  margin: 10px 0;
+  padding: 5px;
+}
+
+input[type="button"] {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #cc0000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
+
+#shortenedUrl {
+  margin-top: 20px;
+  font-weight: bold;
+  text-align: center;
+}

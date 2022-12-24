@@ -1,0 +1,248 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: zoph.io - url-shortener - https://zoph.io - December 2022
+###########################################################
+Parameters:
+  ###########################################################
+  pEnv:
+    Type: String
+  pAWSRegion:
+    Type: String
+  pProjectName:
+    Type: String
+  pMinChar:
+    Type: String
+  pMaxChar:
+    Type: String
+  pDescription:
+    Type: String
+  pAlertsRecipient:
+    Type: String
+  pCertificateArn:
+    Type: String
+  pHostedZoneId:
+    Type: String
+  pDomain:
+    Type: String
+  pSubDomain:
+    Type: String
+  pFallbackUrl:
+    Type: String
+
+###########################################################
+Resources:
+  ###########################################################
+  ShortenerFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      FunctionName: !Sub ${pProjectName}-shortener-${pEnv}
+      Description: !Sub ${pProjectName} - ${pDescription}
+      Handler: handlers.main
+      Runtime: python3.9
+      CodeUri: ../shortener/
+      Events:
+        Create:
+          Type: Api
+          Properties:
+            Path: /create
+            Method: post
+            RestApiId:
+              Ref: APIGateway
+        Retreive:
+          Type: Api
+          Properties:
+            Path: /{shortid}
+            Method: get
+            RestApiId:
+              Ref: APIGateway
+      MemorySize: 256
+      Timeout: 300
+      Environment:
+        Variables:
+          DOMAIN: !Ref pDomain
+          SUB_DOMAIN: !Ref pSubDomain
+          FALLBACK_URL: !Ref pFallbackUrl
+          ENVIRONMENT: !Ref pEnv
+          TABLE_NAME: !Sub "${pProjectName}-url-table-${pEnv}"
+          REGION: !Ref pAWSRegion
+          MIN_CHAR: !Ref pMinChar
+          MAX_CHAR: !Ref pMaxChar
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:GetItem
+                - dynamodb:UpdateItem
+              Resource: !GetAtt UrlDynamoTable.Arn
+      Tags:
+        Project: !Ref pProjectName
+        Environment: !Ref pEnv
+
+  APIGateway:
+    Type: AWS::Serverless::Api
+    DependsOn: ShortenerFunction
+    Properties:
+      Domain:
+        DomainName: !Sub ${pSubDomain}.${pDomain}
+        CertificateArn: !Ref pCertificateArn
+        EndpointConfiguration: EDGE
+        Route53:
+          HostedZoneId: !Ref pHostedZoneId
+      StageName: prod
+      DisableExecuteApiEndpoint: true
+      DefinitionBody:
+        swagger: 2.0
+        info:
+          version: "1.0"
+          title: !Sub ${pProjectName}-api-${pEnv}
+        basePath: /prod
+        schemes:
+          - "https"
+        paths:
+          /create:
+            post:
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Empty"
+              x-amazon-apigateway-integration:
+                uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ShortenerFunction.Arn}/invocations"
+                httpMethod: "POST"
+                responses:
+                  default:
+                    statusCode: "200"
+                passthroughBehavior: "when_no_match"
+                contentHandling: "CONVERT_TO_TEXT"
+                type: "aws_proxy"
+          /{shortid}:
+            get:
+              consumes:
+                - "application/json"
+              parameters:
+                - name: "shortid"
+                  in: "path"
+                  required: true
+                  type: "string"
+              responses:
+                "301":
+                  description: "301 response"
+                  headers:
+                    Location:
+                      type: "string"
+              x-amazon-apigateway-integration:
+                uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ShortenerFunction.Arn}/invocations"
+                httpMethod: "POST"
+                responses:
+                  default:
+                    statusCode: "301"
+                    responseParameters:
+                      method.response.header.Location: "integration.response.body.location"
+                requestTemplates:
+                  application/json: "{\n    \"short_id\": \"$input.params('shortid')\"\n}"
+                passthroughBehavior: "when_no_templates"
+                contentHandling: "CONVERT_TO_TEXT"
+                type: "aws"
+
+  UrlDynamoTable:
+    Type: AWS::DynamoDB::Table
+    # DeletionPolicy: Retain
+    # UpdateReplacePolicy: Retain
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: short_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: short_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      TableName: !Sub "${pProjectName}-url-table-${pEnv}"
+      Tags:
+        - Key: Project
+          Value: !Ref pProjectName
+
+  RetreiverLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${pProjectName}-retreiver-${pEnv}"
+      RetentionInDays: 30
+
+  ShortenerLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${pProjectName}-shortener-${pEnv}"
+      RetentionInDays: 30
+
+  RetreiverCloudWatchLogsMetricsFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: "ERROR"
+      LogGroupName: !Sub "/aws/lambda/${pProjectName}-retreiver-${pEnv}"
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub ${pProjectName}-retreiver-${pEnv}
+          MetricName: "ERROR"
+          DefaultValue: 0
+    DependsOn: RetreiverLambdaLogGroup
+
+  ShortenerCloudWatchLogsMetricsFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: "ERROR"
+      LogGroupName: !Sub "/aws/lambda/${pProjectName}-shortener-${pEnv}"
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub ${pProjectName}-shortener-${pEnv}
+          MetricName: "ERROR"
+          DefaultValue: 0
+    DependsOn: ShortenerLambdaLogGroup
+
+  RetreiverErrorAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingTopic
+      AlarmDescription: !Sub "Alarm for ERROR on ${pProjectName} retreiver function"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      MetricName: ERROR
+      Namespace: !Sub ${pProjectName}-retreiver-${pEnv}
+      OKActions:
+        - !Ref AlertingTopic
+      Period: 10
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: ignore
+
+  ShortenerErrorAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingTopic
+      AlarmDescription: !Sub "Alarm for ERROR on ${pProjectName} shortener function"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      MetricName: ERROR
+      Namespace: !Sub ${pProjectName}-shortener-${pEnv}
+      OKActions:
+        - !Ref AlertingTopic
+      Period: 10
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: ignore
+
+  AlertingTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: !Sub "[${pEnv}] Alarm Topic for ${pProjectName}"
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref pAlertsRecipient

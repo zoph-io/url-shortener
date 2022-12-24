@@ -229,3 +229,4 @@ cython_debug/
 .aws_sam/
 .vscode
 .aws-sam/build.toml
+frontend/script.js

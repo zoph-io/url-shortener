@@ -1,12 +1,8 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: 2010-09-09
 Transform: "AWS::Serverless-2016-10-31"
-Description: zoph.io - url-shortener - https://zoph.io - June 2022
-###########################################################
+Description: zoph.io - url-shortener - https://zoph.io - December 2022
+
 Parameters:
-  ###########################################################
-  pAppUrl:
-    Type: String
-    Description: App URL
   pEnv:
     Type: String
     Description: Environment Name
@@ -28,165 +24,50 @@ Parameters:
   pAlertsRecipient:
     Type: String
     Description: Alerts recipient (prefer distribution list)
+  pCertificateArn:
+    Type: String
+    Description: ACM Certificate arn used for API Gateway and CloudFront
+  pHostedZoneId:
+    Type: String
+    Description: Route53 HostedZoneId where your domain belong
+  pDomain:
+    Type: String
+    Description: Route53 Domain (APEX)
+  pSubDomain:
+    Type: String
+    Description: Route53 Subdomain
+  pFallbackUrl:
+    Type: String
+    Description: Fallback URL when no long url is found
 
-###########################################################
 Resources:
-  ###########################################################
-  ShortenerFunction:
-    Type: "AWS::Serverless::Function"
+  FrontStack:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      FunctionName: !Sub ${pProjectName}-shortener-${pEnv}
-      Description: !Sub ${pProjectName} - ${pDescription}
-      Handler: handlers.main
-      Runtime: python3.9
-      CodeUri: shortener/
-      MemorySize: 256
-      Timeout: 300
-      Environment:
-        Variables:
-          APP_URL: !Sub ${pAppUrl}
-          ENVIRONMENT: !Ref pEnv
-          TABLE_NAME: !Sub "${pProjectName}-url-table-${pEnv}"
-          REGION: !Sub ${pAWSRegion}
-          MIN_CHAR: !Sub ${pMinChar}
-          MAX_CHAR: !Sub ${pMaxChar}
-      Policies:
-        - Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Action:
-                - dynamodb:PutItem
-                - dynamodb:DeleteItem
-                - dynamodb:GetItem
-                - dynamodb:Query
-                - dynamodb:UpdateItem
-              Resource: !GetAtt UrlDynamoTable.Arn
-      Tags:
-        Project: !Ref pProjectName
-        Environment: !Ref pEnv
+      TemplateURL: ./frontend/frontend.yml
+      Parameters:
+        pCertificateArn: !Ref pCertificateArn
+        pDomain: !Ref pDomain
 
-  RetreiverFunction:
-    Type: "AWS::Serverless::Function"
+  BackendStack:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      FunctionName: !Sub ${pProjectName}-retreiver-${pEnv}
-      Description: !Sub ${pProjectName} - ${pDescription}
-      Handler: handlers.main
-      Runtime: python3.9
-      CodeUri: retreiver/
-      MemorySize: 256
-      Timeout: 300
-      Environment:
-        Variables:
-          TABLE_NAME: !Sub "${pProjectName}-url-table-${pEnv}"
-          REGION: !Sub ${pAWSRegion}
-      Policies:
-        - Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:Query
-                - dynamodb:UpdateItem
-              Resource: !GetAtt UrlDynamoTable.Arn
-      Tags:
-        Project: !Ref pProjectName
-        Environment: !Ref pEnv
+      TemplateURL: ./backend/backend.yml
+      Parameters:
+        pEnv: !Ref pEnv
+        pAWSRegion: !Ref pAWSRegion
+        pProjectName: !Ref pProjectName
+        pMinChar: !Ref pMinChar
+        pMaxChar: !Ref pMaxChar
+        pDescription: !Ref pDescription
+        pAlertsRecipient: !Ref pAlertsRecipient
+        pCertificateArn: !Ref pCertificateArn
+        pHostedZoneId: !Ref pHostedZoneId
+        pDomain: !Ref pDomain
+        pSubDomain: !Ref pSubDomain
+        pFallbackUrl: !Ref pFallbackUrl
 
-  UrlDynamoTable:
-    Type: AWS::DynamoDB::Table
-    #DeletionPolicy: Retain
-    #UpdateReplacePolicy: Retain
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: short_id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: short_id
-          KeyType: HASH
-      BillingMode: PAY_PER_REQUEST
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
-      TableName: !Sub "${pProjectName}-url-table-${pEnv}"
-      Tags:
-        - Key: Project
-          Value: !Ref pProjectName
-
-  RetreiverLambdaLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${pProjectName}-retreiver-${pEnv}"
-      RetentionInDays: 30
-
-  ShortenerLambdaLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${pProjectName}-shortener-${pEnv}"
-      RetentionInDays: 30
-
-  RetreiverCloudWatchLogsMetricsFilter:
-    Type: AWS::Logs::MetricFilter
-    Properties:
-      FilterPattern: "ERROR"
-      LogGroupName: !Sub "/aws/lambda/${pProjectName}-retreiver-${pEnv}"
-      MetricTransformations:
-        - MetricValue: "1"
-          MetricNamespace: !Sub ${pProjectName}-retreiver-${pEnv}
-          MetricName: "ERROR"
-          DefaultValue: 0
-    DependsOn: RetreiverLambdaLogGroup
-
-  ShortenerCloudWatchLogsMetricsFilter:
-    Type: AWS::Logs::MetricFilter
-    Properties:
-      FilterPattern: "ERROR"
-      LogGroupName: !Sub "/aws/lambda/${pProjectName}-shortener-${pEnv}"
-      MetricTransformations:
-        - MetricValue: "1"
-          MetricNamespace: !Sub ${pProjectName}-shortener-${pEnv}
-          MetricName: "ERROR"
-          DefaultValue: 0
-    DependsOn: ShortenerLambdaLogGroup
-
-  RetreiverErrorAlarm:
-    Type: "AWS::CloudWatch::Alarm"
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingTopic
-      AlarmDescription: !Sub "Alarm for ERROR on ${pProjectName} retreiver function"
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      EvaluationPeriods: 1
-      MetricName: ERROR
-      Namespace: !Sub ${pProjectName}-retreiver-${pEnv}
-      OKActions:
-        - !Ref AlertingTopic
-      Period: 10
-      Statistic: Sum
-      Threshold: 1
-      TreatMissingData: ignore
-
-  ShortenerErrorAlarm:
-    Type: "AWS::CloudWatch::Alarm"
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingTopic
-      AlarmDescription: !Sub "Alarm for ERROR on ${pProjectName} shortener function"
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      EvaluationPeriods: 1
-      MetricName: ERROR
-      Namespace: !Sub ${pProjectName}-shortener-${pEnv}
-      OKActions:
-        - !Ref AlertingTopic
-      Period: 10
-      Statistic: Sum
-      Threshold: 1
-      TreatMissingData: ignore
-
-  AlertingTopic:
-    Type: "AWS::SNS::Topic"
-    Properties:
-      DisplayName: !Sub "[${pEnv}] Alarm Topic for ${pProjectName}"
-      Subscription:
-        - Protocol: email
-          Endpoint: !Ref pAlertsRecipient
+Outputs:
+  S3BucketLogs:
+    Description: CloudFront distribution DomainName
+    Value: !GetAtt FrontStack.Outputs.CloudFrontDistribution
