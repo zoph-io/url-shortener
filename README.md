@@ -1,53 +1,57 @@
-# Serverless url-shortener
+# 🔗 url-shortener
 
-## 🧠 Rational
+## 🧠 Rationale
 
-This AWS serverless url-shortener is used for [AWS Security Digest Newsletter](https://asd.zoph.io) to shorten urls and also act as simple hits counter for analytics purpose. It could make sense for you too, so feel free to deploy it for your own usage. PR accepted.
+Try out this AWS serverless url-shortener for your own usage and see the benefits it can bring.
+
+It's perfect for shortening links and tracking analytics. Give it a shot and deploy it for your own needs.
+
+Plus, contributions and pull requests are welcome.
 
 ## 💡 Features
 
-1. urls shortener
+1. URLs shortener
    1. API (`Create`)
-   2. Static website
-2. hits counter
+   2. Companion static website
+2. Hits counter + Analytics
 
 ## 🚀 Usage
 
 ### Pre-requirements
 
-1. You will need to have an already issued wilcard ACM Certificate in `us-east-1` AWS region: `*.{your_domain}`
+1. You will need to have an already issued ACM wildcard Certificate in `us-east-1` AWS region: `*.{your_domain}`
 2. Set the proper parameters in the `Makefile`
 
-#### Parameters
+#### 🎛 Parameters
 
-| Parameter       | Default Value   | Description                                                   |
-| --------------- | --------------- | ------------------------------------------------------------- |
-| Product         | url-shortener   | Product Name                                                  |
-| Project         | asd             | Project Name                                                  |
-| Environment     | dev             | Environment Name                                              |
-| MinChar         | 3               | Minimum characters for the random shortened link id           |
-| MaxChar         | 3               | Maximum characters for the random shortened link id           |
-| Domain          | zoph.io         | Desired Domain (must be linked to the HostedZoneId Parameter) |
-| SubDomain       | shortener       | Desired subdomain of the api                                  |
-| HostedZoneId    | `Required`      | Route53 HostedZoneId where your domain belongs                |
-| FallbackUrl     | https://zoph.io | When the url does not exist, fallback url                     |
-| CertificateArn  | `Required`      | Arn of the Wildcard ACM Certificate (`us-east-1`)             |
-| AWSRegion       | eu-west-1       | AWS Region of the Shortener                                   |
-| AlertsRecipient | `Required`      | Email of the recipient of CloudWatch Alarms                   |
+| Parameters      | Default Value     | Description                                                   |
+| --------------- | ----------------- | ------------------------------------------------------------- |
+| Product         | `url-shortener`   | Product Name                                                  |
+| Project         | `zophio`          | Project Name                                                  |
+| Environment     | `dev`             | Environment Name                                              |
+| MinChar         | `3`               | Minimum characters for the random shortened link id           |
+| MaxChar         | `3`               | Maximum characters for the random shortened link id           |
+| Domain          | `zoph.io`         | Desired Domain (must be linked to the HostedZoneId Parameter) |
+| SubDomain       | `shortener`       | Desired subdomain of the api                                  |
+| HostedZoneId    | `Required`        | Route53 `HostedZoneId` where your domain belongs              |
+| FallbackUrl     | `https://zoph.io` | When the url does not exist, fallback url                     |
+| CertificateArn  | `Required`        | Arn of the Wildcard ACM Certificate (`us-east-1`)             |
+| AWSRegion       | `eu-west-1`       | AWS Region                                                    |
+| AlertsRecipient | `Required`        | Email of the recipient of CloudWatch Alarms                   |
 
-### Deployment
+### Single Command Deployment
 
         $ make deploy
 
-### Shorten urls
+### How to shorten urls?
 
-### Using Static Website
+### Using Companion Static Website
 
-Go to the following website after the deployment.
+Go to the following website after the deployment (depends on your parameters :point_up_2:)
 
-- [https://short.{domain}]()
+- [https://{SubDomain}.{Domain}]()
 
-#### Using `Makefile`
+#### Using the `Makefile`
 
         $ make url 'https://google.com'
 
