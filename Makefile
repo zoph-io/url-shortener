@@ -90,7 +90,7 @@ copy_front:
 
 
 delete:
-	sam delete --stack-name "${Project}-${Environment}"
+	sam delete --stack-name "${Project}-${Product}-main-${Environment}"
 
 clean:
 	@rm -fr build/
