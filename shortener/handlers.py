@@ -72,7 +72,7 @@ def main(event, context):
 def create(event, context):
     analytics = {}
     short_id = generate_id()
-    short_url = "https://" + sub_domain + domain + "/" + short_id
+    short_url = "https://" + sub_domain + "." + domain + "/" + short_id
 
     # Handle empty long_url
     if not json.loads(event.get("body")).get("long_url"):
@@ -163,16 +163,22 @@ def retreiver(event, context):
             long_url,
             short_id,
         )
-        # increase the hit number on the db entry of the url (for analytics)
-        ddb.update_item(
-            Key={"short_id": short_id},
-            UpdateExpression="set hits = hits + :val",
-            ExpressionAttributeValues={":val": 1},
-        )
-
-    except:
+        # Stats: increase the hit number on the db entry of the url (for analytics)
+        try:
+            ddb.update_item(
+                Key={"short_id": short_id},
+                UpdateExpression="set hits = hits + :val",
+                ExpressionAttributeValues={":val": 1},
+            )
+        except ClientError as error:
+            logging.error(
+                "Failed to increase the stats for: %s with: %s", short_id, error
+            )
+    except ClientError as err:
         long_url = fallback_url
-        logging.error("Can't find this short_id: %s, falling back to default", short_id)
+        logging.error(
+            "Can't find this short_id: %s, falling back to default: %s", short_id, err
+        )
 
     answer = {
         "statusCode": 301,
