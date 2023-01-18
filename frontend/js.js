@@ -1,3 +1,13 @@
+document.getElementById("shorten-button").addEventListener("click", shortenURL);
+
+var input = document.getElementById("url");
+
+input.addEventListener("keypress", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.getElementById("shorten-button").click();
+  }
+});
 
 function shortenURL() {
   const url = document.getElementById("url").value;
@@ -20,4 +30,5 @@ function shortenURL() {
   };
 
   request.send(JSON.stringify({ long_url: url }));
+  url.reset();
 }

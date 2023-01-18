@@ -10,6 +10,8 @@ Parameters:
     Type: String
   pProjectName:
     Type: String
+  pProductName:
+    Type: String
   pMinChar:
     Type: String
   pMaxChar:
@@ -35,8 +37,8 @@ Resources:
   ShortenerFunction:
     Type: "AWS::Serverless::Function"
     Properties:
-      FunctionName: !Sub ${pProjectName}-shortener-${pEnv}
-      Description: !Sub ${pProjectName} - ${pDescription}
+      FunctionName: !Sub ${pProductName}-${pProjectName}-${pEnv}
+      Description: !Ref pDescription
       Handler: handlers.main
       Runtime: python3.9
       CodeUri: ../shortener/
@@ -63,7 +65,7 @@ Resources:
           SUB_DOMAIN: !Ref pSubDomain
           FALLBACK_URL: !Ref pFallbackUrl
           ENVIRONMENT: !Ref pEnv
-          TABLE_NAME: !Sub "${pProjectName}-url-table-${pEnv}"
+          TABLE_NAME: !Sub "${pProductName}-${pProjectName}-url-table-${pEnv}"
           REGION: !Ref pAWSRegion
           MIN_CHAR: !Ref pMinChar
           MAX_CHAR: !Ref pMaxChar
@@ -78,7 +80,9 @@ Resources:
               Resource: !GetAtt UrlDynamoTable.Arn
       Tags:
         Project: !Ref pProjectName
+        Product: !Ref pProductName
         Environment: !Ref pEnv
+        Endpoint: !Sub ${pSubDomain}.${pDomain}
 
   APIGateway:
     Type: AWS::Serverless::Api
@@ -96,7 +100,7 @@ Resources:
         swagger: 2.0
         info:
           version: "1.0"
-          title: !Sub ${pProjectName}-api-${pEnv}
+          title: !Sub ${pProductName}-${pProjectName}-api-${pEnv}
         basePath: /prod
         schemes:
           - "https"
@@ -162,64 +166,35 @@ Resources:
       BillingMode: PAY_PER_REQUEST
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
-      TableName: !Sub "${pProjectName}-url-table-${pEnv}"
+      TableName: !Sub "${pProductName}-${pProjectName}-url-table-${pEnv}"
       Tags:
         - Key: Project
           Value: !Ref pProjectName
-
-  RetreiverLambdaLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${pProjectName}-retreiver-${pEnv}"
-      RetentionInDays: 30
+        - Key: Product
+          Value: !Ref pProductName
 
   ShortenerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${pProjectName}-shortener-${pEnv}"
+      LogGroupName: !Sub "/aws/lambda/${pProductName}-${pProjectName}-${pEnv}"
       RetentionInDays: 30
-
-  RetreiverCloudWatchLogsMetricsFilter:
-    Type: AWS::Logs::MetricFilter
-    Properties:
-      FilterPattern: "ERROR"
-      LogGroupName: !Sub "/aws/lambda/${pProjectName}-retreiver-${pEnv}"
-      MetricTransformations:
-        - MetricValue: "1"
-          MetricNamespace: !Sub ${pProjectName}-retreiver-${pEnv}
-          MetricName: "ERROR"
-          DefaultValue: 0
-    DependsOn: RetreiverLambdaLogGroup
+      Tags:
+        - Key: Project
+          Value: !Ref pProjectName
+        - Key: Product
+          Value: !Ref pProductName
 
   ShortenerCloudWatchLogsMetricsFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
       FilterPattern: "ERROR"
-      LogGroupName: !Sub "/aws/lambda/${pProjectName}-shortener-${pEnv}"
+      LogGroupName: !Sub "/aws/lambda/${pProductName}-${pProjectName}-${pEnv}"
       MetricTransformations:
         - MetricValue: "1"
-          MetricNamespace: !Sub ${pProjectName}-shortener-${pEnv}
+          MetricNamespace: !Sub ${pProductName}-${pProjectName}-${pEnv}
           MetricName: "ERROR"
           DefaultValue: 0
     DependsOn: ShortenerLambdaLogGroup
-
-  RetreiverErrorAlarm:
-    Type: "AWS::CloudWatch::Alarm"
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingTopic
-      AlarmDescription: !Sub "Alarm for ERROR on ${pProjectName} retreiver function"
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      EvaluationPeriods: 1
-      MetricName: ERROR
-      Namespace: !Sub ${pProjectName}-retreiver-${pEnv}
-      OKActions:
-        - !Ref AlertingTopic
-      Period: 10
-      Statistic: Sum
-      Threshold: 1
-      TreatMissingData: ignore
 
   ShortenerErrorAlarm:
     Type: "AWS::CloudWatch::Alarm"
@@ -227,11 +202,11 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingTopic
-      AlarmDescription: !Sub "Alarm for ERROR on ${pProjectName} shortener function"
+      AlarmDescription: !Sub "Alarm for ERROR on ${pProductName}-${pProjectName}-${pEnv} function"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 1
       MetricName: ERROR
-      Namespace: !Sub ${pProjectName}-shortener-${pEnv}
+      Namespace: !Sub ${pProductName}-${pProjectName}-${pEnv}
       OKActions:
         - !Ref AlertingTopic
       Period: 10
@@ -242,7 +217,12 @@ Resources:
   AlertingTopic:
     Type: "AWS::SNS::Topic"
     Properties:
-      DisplayName: !Sub "[${pEnv}] Alarm Topic for ${pProjectName}"
+      DisplayName: !Sub "[${pEnv}] Alarm Topic for ${pProductName}-${pProjectName}"
       Subscription:
         - Protocol: email
           Endpoint: !Ref pAlertsRecipient
+      Tags:
+        - Key: Project
+          Value: !Ref pProjectName
+        - Key: Product
+          Value: !Ref pProductName

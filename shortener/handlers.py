@@ -65,8 +65,18 @@ def main(event, context):
     else:
         if "/create" in event["path"] and event["httpMethod"] == "POST":
             answer = create(event, context)
+        else:
+            answer = {
+                "statusCode": 403,
+                "headers": {
+                    "Access-Control-Allow-Headers": "Content-Type",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+                },
+                "body": json.dumps({"Error": "Access Denied"}),
+            }
 
-        return answer
+    return answer
 
 
 def create(event, context):
@@ -157,7 +167,15 @@ def retreiver(event, context):
 
     try:
         item = ddb.get_item(Key={"short_id": short_id})
-        long_url = item.get("Item").get("long_url")
+
+        # Check if DynamoDB found something in the table
+        if "Item" in item:
+            long_url = item.get("Item").get("long_url")
+        else:
+            return {
+                "statusCode": 404,
+                "message": "short_id not found",
+            }
         logging.info(
             "Successfully retreived long-url: %s requested for short_id: %s",
             long_url,

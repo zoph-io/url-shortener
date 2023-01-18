@@ -72,10 +72,9 @@ deploy: build
 			pMinChar=${MinChar} \
 			pMaxChar=${MaxChar} \
 			pProjectName=${Project} \
+			pProductName=${Product} \
 			pDescription='${Description}' \
 			pAlertsRecipient='${AlertsRecipient}' \
-			pDomain='${Domain}' \
-			pSubDomain='${SubDomain}' \
 			pHostedZoneId=${HostedZoneId} \
 			pCertificateArn='${CertificateArn}' \
 			pFallbackUrl='${FallbackUrl}' \

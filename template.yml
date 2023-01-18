@@ -12,6 +12,9 @@ Parameters:
   pProjectName:
     Type: String
     Description: Project Name
+  pProductName:
+    Type: String
+    Description: Product Name
   pMinChar:
     Type: String
     Description: Minimum number of character for the random string
@@ -38,25 +41,29 @@ Parameters:
     Description: Route53 Subdomain
   pFallbackUrl:
     Type: String
-    Description: Fallback URL when no long url is found
+    Description: Fallback URL when no long url is found in DynamoDB Table
 
 Resources:
   FrontStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: ./frontend/frontend.yml
+      TemplateURL: "./frontend/frontend.yml"
       Parameters:
         pCertificateArn: !Ref pCertificateArn
         pDomain: !Ref pDomain
+        pSubDomain: !Ref pSubDomain
+        pProductName: !Ref pProductName
+        pProjectName: !Ref pProjectName
 
   BackendStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: ./backend/backend.yml
+      TemplateURL: "./backend/backend.yml"
       Parameters:
         pEnv: !Ref pEnv
         pAWSRegion: !Ref pAWSRegion
         pProjectName: !Ref pProjectName
+        pProductName: !Ref pProductName
         pMinChar: !Ref pMinChar
         pMaxChar: !Ref pMaxChar
         pDescription: !Ref pDescription

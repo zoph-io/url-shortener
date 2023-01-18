@@ -1,11 +1,17 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CloudFront with Header Security and site content
+Description: CloudFront with Header Security and static site content
 Transform: "AWS::Serverless-2016-10-31"
 
 Parameters:
   pCertificateArn:
     Type: String
   pDomain:
+    Type: String
+  pSubDomain:
+    Type: String
+  pProductName:
+    Type: String
+  pProjectName:
     Type: String
 
 Resources:
@@ -19,7 +25,9 @@ Resources:
               SSEAlgorithm: AES256
       Tags:
         - Key: Project
-          Value: url-shortener
+          Value: !Ref pProjectName
+        - Key: Product
+          Value: !Ref pProductName
 
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -39,6 +47,7 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
+        Comment: !Sub ${pProductName}-${pProjectName}
         Aliases:
           - !Sub short.${pDomain}
         DefaultCacheBehavior:
@@ -82,7 +91,9 @@ Resources:
           SslSupportMethod: "sni-only"
       Tags:
         - Key: Project
-          Value: url-shortener
+          Value: !Ref pProjectName
+        - Key: Product
+          Value: !Ref pProductName
 
   CloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
@@ -115,7 +126,7 @@ Resources:
             Override: true
             Preload: true
           ContentSecurityPolicy:
-            ContentSecurityPolicy: "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
+            ContentSecurityPolicy: !Sub "default-src 'none'; img-src 'self'; script-src 'self'; style-src 'self'; object-src 'none' ; font-src 'self' data:; connect-src 'self' https://${pSubDomain}.${pDomain}/"
             Override: true
           ContentTypeOptions:
             Override: true
@@ -137,4 +148,4 @@ Outputs:
 
   CloudFrontDomainName:
     Description: Website address
-    Value: !Sub "${pDomain}"
+    Value: !Sub "short.${pDomain}"
