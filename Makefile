@@ -85,6 +85,7 @@ copy_front:
 	@aws s3 cp ./frontend/index.htm s3://short.${Domain}/
 	@aws s3 cp ./frontend/styles.css s3://short.${Domain}/
 	@aws s3 cp ./frontend/script.js s3://short.${Domain}/
+	@aws s3 cp ./frontend/favicon.ico s3://short.${Domain}/
 	@aws cloudfront create-invalidation --distribution-id "E3K1HJ8UJ31GZ9" --path "/*"
 
 
