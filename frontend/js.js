@@ -30,5 +30,5 @@ function shortenURL() {
   };
 
   request.send(JSON.stringify({ long_url: url }));
-  url.reset();
+  document.getElementById("url").value = "";
 }
