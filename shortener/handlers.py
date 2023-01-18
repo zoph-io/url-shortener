@@ -86,7 +86,7 @@ def create(event, context):
 
     # Handle empty long_url
     if not json.loads(event.get("body")).get("long_url"):
-        answer = {
+        return {
             "statusCode": 500,
             "headers": {
                 "Access-Control-Allow-Headers": "Content-Type",
@@ -100,7 +100,7 @@ def create(event, context):
         if validators.url(json.loads(event.get("body")).get("long_url")):
             long_url = json.loads(event.get("body")).get("long_url")
         else:
-            answer = {
+            return {
                 "statusCode": 500,
                 "headers": {
                     "Access-Control-Allow-Headers": "Content-Type",
@@ -168,13 +168,12 @@ def retreiver(event, context):
     try:
         item = ddb.get_item(Key={"short_id": short_id})
 
-        # Check if DynamoDB found something in the table
         if "Item" in item:
             long_url = item.get("Item").get("long_url")
         else:
             return {
                 "statusCode": 404,
-                "message": "short_id not found",
+                "message": "id not found",
             }
         logging.info(
             "Successfully retreived long-url: %s requested for short_id: %s",
