@@ -2,9 +2,9 @@
 
 ## 🧠 Rationale
 
-This _yet another url-shortener_, is the one I'm using for [AWS Security Digest Newsletter](https://awssecuritydigest.com) to count clic rate from readers.
+This _yet another url-shortener_, is the one I'm using for [AWS Security Digest Newsletter](https://awssecuritydigest.com) to track click rate from readers.
 
-I wasn't able to find an existing solution that match my needs so I crafted my own, another excuse to learn something new.
+I wasn't able to find an existing solution that match my needs so I crafted my own version, another excuse to learn something new 🤓.
 
 Try out this AWS serverless url-shortener for your own usage and see the benefits it can bring.
 
@@ -16,8 +16,8 @@ Plus, contributions and pull requests are welcome.
 
 1. AWS Serverless URLs shortener
    1. `Create` API
-   2. Companion static website (Javascript)
-2. Hits counter + Analytics (DynamoDB)
+   2. Companion static website (HTML + Javascript)
+2. Hits counter + Analytics (Persisted in DynamoDB)
 
 ## 📐 Schema
 
@@ -27,8 +27,8 @@ Plus, contributions and pull requests are welcome.
 
 ### Pre-requirements
 
-1. You will need to have an already issued ACM wildcard Certificate in `us-east-1` AWS region: `*.{your_domain}`
-2. Set the proper parameters in the `Makefile`
+1. You will need to have an already issued AWS Certificate Manage (ACM) wildcard Certificate in `us-east-1` AWS region: `*.{your_domain}`
+2. Configure the proper parameters in the `Makefile`
 
 #### 🎛 Parameters
 
@@ -67,23 +67,23 @@ Go to the following website after the deployment (depends on your parameters :po
 
 #### Using `cURL`
 
-        ```bash
-        curl -X POST https://{subdomain}.{domain}/create/ \
-        --header "Content-Type: application/json" \
-        -d '{"long_url": "https://google.com"}'
-        ```
+```bash
+curl -X POST https://{subdomain}.{domain}/create/ \
+--header "Content-Type: application/json" \
+-d '{"long_url": "https://google.com"}'
+```
 
 ##### Response
 
-        ```json
-        {
-        "created_at": "2023-01-17T13:37:00",
-        "long_url": "https://zoph.io",
-        "short_id": "dBC",
-        "short_url": "https://{subdomain}.{domain}/dBC",
-        "ttl": 1674561936
-        }
-        ```
+```json
+{
+"created_at": "2023-01-17T13:37:00",
+"long_url": "https://zoph.io",
+"short_id": "dBC",
+"short_url": "https://{subdomain}.{domain}/dBC",
+"ttl": 1674561936
+}
+```
 
 ## 📖 Reference
 
@@ -94,7 +94,6 @@ Go to the following website after the deployment (depends on your parameters :po
 ## Todo
 
 1. Cleanup Makefile and Readme
-2. Handle CSP
-3. Handle CORS Properly
-4. Re-Deploy from Scratch - Multiple-times
-5. Estimate deployment time
+2. Handle CORS Properly
+3. Re-Deploy from Scratch - Multiple-times
+4. Estimate deployment time
