@@ -34,6 +34,12 @@ label {
 }
 
 input {
+  font-family: "Courier New", Courier, monospace;
+  font-size: medium;
+}
+
+input[type="text"] {
+  width: 50%;
   margin: 10px 0;
   padding: 5px;
 }
