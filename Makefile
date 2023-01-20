@@ -30,6 +30,7 @@ MaxChar := 3
 # DNS
 Domain := zoph.io
 SubDomain := shortener
+# Existing Route53 ZoneId
 HostedZoneId := Z1BPJ53MJJG818
 FallbackUrl := https://zoph.io
 
@@ -52,7 +53,7 @@ url:
 retreive:
 	@http https://${SubDomain}.${Domain}/aEe
 
-# used to pass parameters directly with makefile (make url)
+# Used to pass parameters directly with makefile (ie: make url)
 %:
 	@:
 
@@ -60,7 +61,7 @@ deploy: build
 	sam deploy \
 		-t .aws-sam/build/template.yaml \
 		--region ${AWSRegion} \
-		--stack-name "${Project}-${Product}-main-${Environment}" \
+		--stack-name "${Project}-${Product}-${Environment}" \
 		--capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
 		--resolve-s3 \
 		--force-upload \
@@ -90,7 +91,7 @@ copy_front:
 
 
 delete:
-	sam delete --stack-name "${Project}-${Product}-main-${Environment}"
+	sam delete --stack-name "${Project}-${Product}-${Environment}"
 
 clean:
 	@rm -fr build/

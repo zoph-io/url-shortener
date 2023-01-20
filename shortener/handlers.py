@@ -18,6 +18,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
+# Set variables
 domain = os.getenv("DOMAIN")
 sub_domain = os.getenv("SUB_DOMAIN")
 aws_region = os.getenv("AWS_REGION")
@@ -172,8 +173,8 @@ def retreiver(event, context):
             long_url = item.get("Item").get("long_url")
         else:
             return {
-                "statusCode": 404,
-                "message": "id not found",
+                "statusCode": 301,
+                "location": fallback_url,
             }
         logging.info(
             "Successfully retreived long-url: %s requested for short_id: %s",

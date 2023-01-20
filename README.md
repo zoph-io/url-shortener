@@ -14,10 +14,17 @@ Plus, contributions and pull requests are welcome.
 
 ## 💡 Features
 
-1. AWS Serverless URLs shortener
-   1. `Create` API
-   2. Companion static website (HTML + Javascript)
-2. Hits counter + Analytics (Persisted in DynamoDB)
+1. `Create` API
+2. Companion static website (HTML + Javascript)
+   - [CORS] and [CSP] compliant
+3. Hits counter + Analytics (Persisted in DynamoDB)
+
+## 🔋 Powered by
+
+- Lambda function (Python 🐍) + API Gateway
+- CloudFront + S3 + ACM
+- DynamoDB Table
+- CloudFormation + SAM
 
 ## 📐 Schema
 
@@ -77,11 +84,11 @@ curl -X POST https://{subdomain}.{domain}/create/ \
 
 ```json
 {
-"created_at": "2023-01-17T13:37:00",
-"long_url": "https://zoph.io",
-"short_id": "dBC",
-"short_url": "https://{subdomain}.{domain}/dBC",
-"ttl": 1674561936
+  "created_at": "2023-01-17T13:37:00",
+  "long_url": "https://zoph.io",
+  "short_id": "dBC",
+  "short_url": "https://{subdomain}.{domain}/dBC",
+  "ttl": 1674561936
 }
 ```
 
@@ -93,7 +100,6 @@ curl -X POST https://{subdomain}.{domain}/create/ \
 
 ## Todo
 
-1. Cleanup Makefile and Readme
+1. Cleanup Makefile and README
 2. Handle CORS Properly
-3. Re-Deploy from Scratch - Multiple-times
-4. Estimate deployment time
+3. Re-Deploy from Scratch - Estimate deployment time
