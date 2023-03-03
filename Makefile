@@ -12,6 +12,7 @@ help:
 	@echo "Available commands:"
 	@echo "	build - build artifacts ${Product} for ${Project}"
 	@echo "	deploy - deploy ${Product} for ${Project} - deploy also run 'build' command"
+	@echo "	setup_front - setup the frontend static website for ${Product} for ${Project}"
 	@echo "	url - create a shorten url using: make url 'https://google.com'"
 	@echo "	---"
 	@echo "	delete - delete ${Product} for ${Project}"
@@ -19,8 +20,8 @@ help:
 
 ###################### Parameters ######################
 Product := url-shortener
-Project := asd
-Environment := dev
+Project := <REPLACE_ME>
+Environment := prod
 Description := ${Product} - ${Project} - ${Environment}
 
 # Shortener Configuration
@@ -28,21 +29,22 @@ MinChar := 3
 MaxChar := 3
 
 # DNS
-Domain := zoph.io
-SubDomain := shortener
+Domain := <REPLACE_ME>
+SubDomain := <REPLACE_ME>
 # Existing Route53 ZoneId
-HostedZoneId := Z1BPJ53MJJG818
-FallbackUrl := https://zoph.io
+HostedZoneId := <REPLACE_ME>
+FallbackUrl := https://zoph.io # <REPLACE_ME>
 
 # Certificate (wildcard in us-east-1)
-CertificateArn := arn:aws:acm:us-east-1:567589703415:certificate/32d12307-3fd1-4685-9e29-096820fc9d85
+CertificateArn := <REPLACE_ME>
 
 # Shortener region
 AWSRegion := eu-west-1
 
 # Monitoring
-AlertsRecipient := victor@zoph.io
+AlertsRecipient := <REPLACE_ME>
 #######################################################
+DistributionId := $(shell aws cloudfront list-distributions --query 'DistributionList.Items[?Origins.Items[0].DomainName==`short.${Domain}.s3.${AWSRegion}.amazonaws.com`].Id | [0]' --output text)
 
 build: clean
 	sam build
@@ -50,8 +52,6 @@ build: clean
 url:
 	@echo '{"long_url": "$(filter-out $@,$(MAKECMDGOALS))"}' | http POST https://${SubDomain}.${Domain}/create
 
-retreive:
-	@http https://${SubDomain}.${Domain}/aEe
 
 # Used to pass parameters directly with makefile (ie: make url)
 %:
@@ -81,17 +81,19 @@ deploy: build
 			pFallbackUrl='${FallbackUrl}' \
 		--no-fail-on-empty-changeset
 	
-copy_front:
+setup_front:
 	@sed -e "s/\__PLACEHOLDER__/${SubDomain}.${Domain}/" ./frontend/js.js > ./frontend/script.js
 	@aws s3 cp ./frontend/index.htm s3://short.${Domain}/
 	@aws s3 cp ./frontend/styles.css s3://short.${Domain}/
 	@aws s3 cp ./frontend/script.js s3://short.${Domain}/
 	@aws s3 cp ./frontend/favicon.ico s3://short.${Domain}/
-	@aws cloudfront create-invalidation --distribution-id "E3K1HJ8UJ31GZ9" --path "/*"
-
+	@aws cloudfront create-invalidation --distribution-id '${DistributionId}' --path "/*"
 
 delete:
 	sam delete --stack-name "${Project}-${Product}-${Environment}"
+
+get_distribution_id:
+	@aws cloudfront list-distributions --query 'DistributionList.Items[?Origins.Items[0].DomainName==`short.${Domain}.s3.${AWSRegion}.amazonaws.com`].Id | [0]' --output text
 
 clean:
 	@rm -fr build/

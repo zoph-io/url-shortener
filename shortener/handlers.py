@@ -28,8 +28,25 @@ min_char = int(os.getenv("MIN_CHAR"))
 max_char = int(os.getenv("MAX_CHAR"))
 string_format = ascii_letters + digits
 
+# CORS configuration
+website_url = "https://short." + domain
+api_endpoint = "https://" + sub_domain + "." + domain
+allowed_origins = [api_endpoint, website_url]
+
 ddb = boto3.resource("dynamodb", region_name=aws_region).Table(table_name)
 
+def cors_setup(event):
+    if "origin" in event["headers"]:
+        logging.info("Origin header detected: %s", event["headers"]["origin"])
+        origin = event["headers"]["origin"]
+        if origin in allowed_origins:
+            logging.info("Origin %s is allowed", origin)
+        else:
+            origin = "https://www.accessdenied.com/" # =)
+    else:
+        origin = "https://www.accessdenied.com/" # =)
+    
+    return origin
 
 def generate_timestamp():
     response = strftime("%Y-%m-%dT%H:%M:%S")
@@ -67,11 +84,12 @@ def main(event, context):
         if "/create" in event["path"] and event["httpMethod"] == "POST":
             answer = create(event, context)
         else:
+            cors = cors_setup(event)
             answer = {
                 "statusCode": 403,
                 "headers": {
                     "Access-Control-Allow-Headers": "Content-Type",
-                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Origin": cors,
                     "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
                 },
                 "body": json.dumps({"Error": "Access Denied"}),
@@ -87,11 +105,12 @@ def create(event, context):
 
     # Handle empty long_url
     if not json.loads(event.get("body")).get("long_url"):
+        cors = cors_setup(event)
         return {
             "statusCode": 500,
             "headers": {
                 "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Origin": cors,
                 "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
             },
             "body": json.dumps({"message": "Empty url field"}),
@@ -101,11 +120,12 @@ def create(event, context):
         if validators.url(json.loads(event.get("body")).get("long_url")):
             long_url = json.loads(event.get("body")).get("long_url")
         else:
+            cors = cors_setup(event)
             return {
                 "statusCode": 500,
                 "headers": {
                     "Access-Control-Allow-Headers": "Content-Type",
-                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Origin": cors,
                     "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
                 },
                 "body": json.dumps({"message": "Malformed URL"}),
@@ -146,12 +166,12 @@ def create(event, context):
             "short_url": short_url,
             "long_url": long_url,
         }
-
+        cors = cors_setup(event)
         answer = {
             "statusCode": 200,
             "headers": {
                 "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Origin": cors,
                 "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
             },
             "body": json.dumps(body),
