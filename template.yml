@@ -78,3 +78,6 @@ Outputs:
   S3BucketLogs:
     Description: CloudFront distribution DomainName
     Value: !GetAtt FrontStack.Outputs.CloudFrontDistribution
+  StaticWebsiteUrl:
+    Description: Static Website URL
+    Value: !Sub "https://short.${pDomain}"
