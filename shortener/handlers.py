@@ -59,19 +59,19 @@ def expiry_date():
 
 
 def check_id(short_id):
-    if "Item" in ddb.get_item(Key={"short_id": short_id}):
-        response = generate_id()
+    response = ddb.get_item(Key={"short_id": short_id})
+    if "Item" in response:
+        print("short_id already exists in Table, generating a new one")
+        return generate_id()
     else:
+        print("newly generate_id is not used, going forward:", short_id)
         return short_id
-
 
 def generate_id():
     short_id = "".join(
         choice(string_format) for x in range(randint(min_char, max_char))
     )
-    response = check_id(short_id)
-
-    return response
+    return check_id(short_id)
 
 
 def main(event, context):

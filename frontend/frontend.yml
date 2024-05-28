@@ -84,11 +84,16 @@ Resources:
                     !Ref CloudFrontOriginAccessIdentity,
                   ],
                 ]
-        PriceClass: "PriceClass_All"
+        PriceClass: "PriceClass_100"
         ViewerCertificate:
           AcmCertificateArn: !Ref "pCertificateArn"
           MinimumProtocolVersion: "TLSv1.1_2016"
           SslSupportMethod: "sni-only"
+        Restrictions:
+          GeoRestriction:
+            RestrictionType: "whitelist"
+            Locations:
+              - "FR"
       Tags:
         - Key: Project
           Value: !Ref pProjectName
