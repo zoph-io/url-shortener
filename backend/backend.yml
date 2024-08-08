@@ -40,7 +40,7 @@ Resources:
       FunctionName: !Sub ${pProductName}-${pProjectName}-${pEnv}
       Description: !Ref pDescription
       Handler: handlers.main
-      Runtime: python3.9
+      Runtime: python3.10
       CodeUri: ../shortener/
       Events:
         Create:
