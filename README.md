@@ -85,6 +85,13 @@ curl -X POST https://{subdomain}.{domain}/create/ \
 -d '{"long_url": "https://google.com"}'
 ```
 
+Optionnaly, you can change the default TTL value (7 days), by using the `ttl_in_days` attribute in body request:
+```bash
+curl -X POST https://{subdomain}.{domain}/create/ \
+--header "Content-Type: application/json" \
+-d '{"long_url": "https://google.com", "ttl_in_days": 365}'
+```
+
 ##### Response sample
 
 ```json
