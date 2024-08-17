@@ -53,8 +53,15 @@ def generate_timestamp():
     return response
 
 
-def expiry_date():
-    response = int(time()) + int(604800)
+def expiry_date(days=7):
+    if days is None or days == 0: # Nothing sent
+        days = 7
+    if days < 0: # Negative value => almost infinite value (ie 100 years)
+        days = 36500
+        # Note: EPOCH may have an overflow issue for date after Tuesday, January 19, 2038
+        #       https://www.epoch101.com/The-2038-Problem
+    ttl = days * 3600 * 24
+    response = int(time()) + int(ttl)
     return response
 
 
@@ -131,8 +138,14 @@ def create(event, context):
                 "body": json.dumps({"message": "Malformed URL"}),
             }
 
+    # Try to read the ttl_in_days value
+    try:
+        ttl = json.loads(event.get("body")).get("ttl_in_days")
+    except:
+        ttl = 0
+
     timestamp = generate_timestamp()
-    ttl_value = expiry_date()
+    ttl_value = expiry_date(ttl)
 
     analytics["user_agent"] = event.get("headers").get("User-Agent")
     analytics["source_ip"] = event.get("headers").get("X-Forwarded-For")
