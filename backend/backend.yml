@@ -172,6 +172,9 @@ Resources:
           Value: !Ref pProjectName
         - Key: Product
           Value: !Ref pProductName
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
 
   ShortenerLambdaLogGroup:
     Type: AWS::Logs::LogGroup
