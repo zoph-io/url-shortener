@@ -213,10 +213,7 @@ def create(event, context):
             "body": json.dumps(body),
         }
     except ClientError as e:
-        if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
-            print('Item already exists')
-        else:
-            logging.error("Error while writing new short_url to table: %s", e)
+        logging.error("Error while writing new short_url to table: %s", e)
 
     return answer
 
