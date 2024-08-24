@@ -8,6 +8,7 @@ from time import strftime, time
 from urllib import parse
 import logging
 import validators
+import math
 
 # Logging configuration
 root = logging.getLogger()
@@ -69,16 +70,31 @@ def check_id(short_id):
     response = ddb.get_item(Key={"short_id": short_id})
     if "Item" in response:
         print("short_id already exists in Table, generating a new one")
-        return generate_id()
+        return False
     else:
         print("newly generate_id is not used, going forward:", short_id)
-        return short_id
+        return True
 
-def generate_id():
-    short_id = "".join(
-        choice(string_format) for x in range(randint(min_char, max_char))
-    )
-    return check_id(short_id)
+def generate_id( human_readble = False ):
+
+    vowels = ['a', 'e', 'i', 'o', 'u', 'y']
+    consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'x',  'z']
+    syllabs = math.ceil(randint(min_char, max_char) / 2)
+    
+    
+    unique = False
+    while not unique:
+        if not human_readble:
+            short_id = "".join(
+                choice(string_format) for x in range(randint(min_char, max_char))
+            )
+        else:
+            short_id = "".join(
+                (choice(consonants)+choice(vowels)) for x in range(syllabs)      
+            )
+        unique = check_id(short_id)
+
+    return short_id    
 
 
 def main(event, context):
@@ -107,8 +123,6 @@ def main(event, context):
 
 def create(event, context):
     analytics = {}
-    short_id = generate_id()
-    short_url = "https://" + sub_domain + "." + domain + "/" + short_id
 
     # Handle empty long_url
     if not json.loads(event.get("body")).get("long_url"):
@@ -137,6 +151,14 @@ def create(event, context):
                 },
                 "body": json.dumps({"message": "Malformed URL"}),
             }
+
+    if not json.loads(event.get("body")).get("human_readable"):
+        short_id = generate_id(False)
+    else:
+        short_id = generate_id(True)
+    short_url = "https://" + sub_domain + "." + domain + "/" + short_id
+
+
 
     # Try to read the ttl_in_days value
     try:

@@ -58,6 +58,8 @@ Resources:
             RestApiId:
               Ref: APIGateway
       MemorySize: 256
+      Architectures:
+        - arm64
       Timeout: 300
       Environment:
         Variables:
