@@ -191,8 +191,7 @@ def create(event, context):
                 "long_url": long_url,
                 "analytics": analytics,
                 "hits": int(0),
-            },
-
+            }
         )
 
         body = {
