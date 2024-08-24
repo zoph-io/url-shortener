@@ -78,7 +78,7 @@ def check_id(short_id):
 def generate_id( human_readble = False ):
 
     vowels = ['a', 'e', 'i', 'o', 'u', 'y']
-    consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x',  'z']
+    consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'x',  'z']
     syllabs = math.ceil(randint(min_char, max_char) / 2)
     
     
