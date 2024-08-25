@@ -92,6 +92,29 @@ curl -X POST https://{subdomain}.{domain}/create/ \
 -d '{"long_url": "https://google.com", "ttl_in_days": 365}'
 ```
 
+Optionnaly, you can ask for a _human readable_ (`false` by default) short id, ie a suite of consonants/vowels, easier to read/remember.
+
+```bash
+curl -X POST https://{subdomain}.{domain}/create/ \
+--header "Content-Type: application/json" \
+-d '{"long_url": "https://google.com", "ttl_in_days": 3, "human_readable": true}'
+
+```
+
+Response:
+```json
+{
+  "short_id": "baho", 
+  "created_at": "2024-08-24T15:28:04", 
+  "ttl": 1724772484, 
+  "short_url": "https://{subdomain}.{domain}/baho", 
+  "long_url": "https://google.com"
+}
+
+```
+
+> **Note**: the generated short id is lowercase to avoid any human mistake.
+
 ##### Response sample
 
 ```json

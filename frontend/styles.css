@@ -2,6 +2,7 @@ body {
   font-family: "Courier New", Courier, monospace;
   margin: 20px;
 }
+
 h1 {
   text-align: center;
 }
@@ -57,4 +58,53 @@ input[type="button"] {
   margin-top: 20px;
   font-weight: bold;
   text-align: center;
+}
+
+
+/* for advanced options */
+
+label.options {
+  font-weight: 100;
+}
+
+#options-container {
+  width: 50%;
+  text-align: center;
+}
+
+#options-content {
+  display: none;
+  width: 100%;
+}
+
+#options-toggle {
+  width: 100%;
+  cursor: pointer;
+  text-align: center;
+}
+
+#option-expiry {
+  width: 5em !important;
+}
+
+.optionsTable {
+  width: 100%
+}
+
+.col {
+  width: 50%
+}
+
+.left {
+  text-align: right;
+}
+
+.right {
+  text-align: left;
+  ;
+}
+
+#options-container {
+  width: 50%;
+  padding: 2em;
 }
