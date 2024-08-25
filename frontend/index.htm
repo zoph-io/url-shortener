@@ -9,6 +9,25 @@
     <form>
       <label for="url">🔗 Long URL</label>
       <input type="text" id="url" name="url" placeholder="https://google.fr" />
+      <div id="options-container">
+        <h4 id="options-toggle"></h4>
+        <div id="options-content" style="display: none">
+          <table class="optionsTable">
+            <tr>
+              <td class="col left"><label class="options" for="human-readable">Human readable version:</label></td>
+              <td class="col right"><input type="checkbox" id="human-readable" /></td>
+            </tr>
+            <tr>
+              <td class="col left">
+                <label class="options" for="option-expiry">Expiration (in days) </label>
+              </td>
+              <td class="col right">
+                <input type="number" id="option-expiry" value="7"  />
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
       <input type="button" value="Shorten ✂" id="shorten-button" />
     </form>
     <div id="shortened-url"></div>
